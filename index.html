@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="sv">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Type FX Tool</title>
+  <title>CB Type FX Tool</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,13 +41,13 @@
       outline:none;
       white-space:pre-wrap;
       transform-origin:0 0;
+     img_TEXTCOLOR
       will-change:transform,filter;
       font-size:64px;
       line-height:1.05;
       letter-spacing:-.02em;
       filter:url(#fx);
     }
-    #grain{position:fixed;inset:0;pointer-events:none;opacity:0;mix-blend-mode:overlay}
   </style>
 </head>
 
@@ -77,7 +77,6 @@
 
     <label>Distortion</label><input id="k" type="range" min="0" max="140" value="12" />
     <label>Blur</label><input id="b" type="range" min="0" max="24" value="0" />
-    <label>Noise</label><input id="n" type="range" min="0" max="100" value="0" />
 
     <div class="row">
       <div><label>3D amount</label><input id="a3" type="range" min="0" max="100" value="0" /></div>
@@ -89,19 +88,18 @@
       <div><label>Animation FPS</label><input id="fps" type="range" min="0" max="60" value="24" /></div>
     </div>
 
+    <button id="dlpng">Download PNG (.png)</button>
     <button id="dljson">Download preset (.json)</button>
     <button id="dlhtml">Download snapshot (.html)</button>
     <small>Click text to edit. Settings autosave locally.</small>
   </div>
-
-  <canvas id="grain"></canvas>
 
   <div id="wrap">
     <div id="t" contenteditable="true" spellcheck="false">Type something…
 Edit me in real time.</div>
   </div>
 
-  <!-- FX FILTER (distortion + blur in SVG for better browser compatibility) -->
+  <!-- FX FILTER (distortion + blur in SVG) -->
   <svg width="0" height="0" style="position:absolute">
     <filter id="fx">
       <feTurbulence id="tb" type="fractalNoise" baseFrequency=".012" numOctaves="2" seed="2" result="noise"/>
@@ -114,14 +112,14 @@ Edit me in real time.</div>
     const $ = (id) => document.getElementById(id);
 
     const t = $("t"),
+      wrap = $("wrap"),
       font = $("font"), fs = $("fs"),
       w = $("w"), s = $("s"),
-      k = $("k"), b = $("b"), n = $("n"),
+      k = $("k"), b = $("b"),
       a3 = $("a3"), p3 = $("p3"),
       hue = $("hue"), fps = $("fps");
 
     const dm = $("dm"), tb = $("tb"), gb = $("gb");
-    const grain = $("grain"), g = grain.getContext("2d", { alpha:true });
 
     let mx = 0, my = 0, seed = 2, last = 0, acc = 0;
 
@@ -139,47 +137,6 @@ Edit me in real time.</div>
       }
     }
 
-    function drawNoise(){
-      const inten = +n.value / 100;
-      const dpr = devicePixelRatio || 1;
-
-      grain.width = innerWidth * dpr;
-      grain.height = innerHeight * dpr;
-      grain.style.width = innerWidth + "px";
-      grain.style.height = innerHeight + "px";
-
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, innerWidth, innerHeight);
-
-      if(inten <= 0){
-        grain.style.opacity = 0;
-        return;
-      }
-
-      const step = Math.max(1, Math.round(6 - inten * 5));
-      const img = g.createImageData(innerWidth, innerHeight);
-
-      for(let y = 0; y < innerHeight; y += step){
-        for(let x = 0; x < innerWidth; x += step){
-          const v = (Math.random() * 255) | 0;
-          const a = Math.round(inten * 70);
-          for(let yy = 0; yy < step; yy++){
-            for(let xx = 0; xx < step; xx++){
-              const px = x + xx, py = y + yy;
-              if(px >= innerWidth || py >= innerHeight) continue;
-              const i = (px + py * innerWidth) * 4;
-              img.data[i] = v;
-              img.data[i+1] = v;
-              img.data[i+2] = v;
-              img.data[i+3] = a;
-            }
-          }
-        }
-      }
-      g.putImageData(img, 0, 0);
-      grain.style.opacity = Math.min(1, inten * 1.2);
-    }
-
     function getState(){
       return {
         text: t.textContent,
@@ -189,7 +146,6 @@ Edit me in real time.</div>
         s: +s.value,
         k: +k.value,
         b: +b.value,
-        n: +n.value,
         a3: +a3.value,
         p3: +p3.value,
         hue: +hue.value,
@@ -198,12 +154,12 @@ Edit me in real time.</div>
     }
 
     function saveLocal(){
-      localStorage.setItem("typefx_state_v2", JSON.stringify(getState()));
+      localStorage.setItem("typefx_state_v3", JSON.stringify(getState()));
     }
 
     function loadLocal(){
       try{
-        const raw = localStorage.getItem("typefx_state_v2");
+        const raw = localStorage.getItem("typefx_state_v3");
         if(!raw) return;
         const st = JSON.parse(raw);
 
@@ -214,7 +170,6 @@ Edit me in real time.</div>
         s.value = st.s ?? s.value;
         k.value = st.k ?? k.value;
         b.value = st.b ?? b.value;
-        n.value = st.n ?? n.value;
         a3.value = st.a3 ?? a3.value;
         p3.value = st.p3 ?? p3.value;
         hue.value = st.hue ?? hue.value;
@@ -228,16 +183,10 @@ Edit me in real time.</div>
       t.style.fontSize = fs.value + "px";
       setVarFont();
 
-      // distortion strength
       dm.setAttribute("scale", k.value);
-
-      // turbulence frequency scaled by distortion
       tb.setAttribute("baseFrequency", (0.006 + (+k.value) * 0.00018).toFixed(4));
-
-      // blur inside SVG filter (more reliable than mixing CSS blur with url(#filter))
       gb.setAttribute("stdDeviation", (+b.value).toFixed(2));
 
-      // 3D tilt based on mouse, plus stretch
       const stretch = (+s.value) / 100;
       const persp = +p3.value;
       const amt = (+a3.value) / 100;
@@ -264,6 +213,98 @@ Edit me in real time.</div>
         .replaceAll(">","&gt;");
     }
 
+    async function downloadPNG(){
+      upd(); // make sure latest values are applied
+
+      const st = getState();
+      const bg = getComputedStyle(document.body).backgroundColor || "#0b0c10";
+
+      // Build an SVG that recreates ONLY the centered text area (no menu).
+      // Using foreignObject lets the browser render the same CSS + SVG filter.
+      const svgW = Math.max(1, Math.floor(innerWidth));
+      const svgH = Math.max(1, Math.floor(innerHeight));
+
+      const tCS = getComputedStyle(t);
+      const wrapCS = getComputedStyle(wrap);
+
+      const css = `
+        html,body{margin:0;height:100%;background:${bg}}
+        #wrap{
+          height:100%;
+          display:${wrapCS.display};
+          place-items:${wrapCS.placeItems};
+          padding:${wrapCS.padding};
+        }
+        #t{
+          max-width:${tCS.maxWidth};
+          white-space:pre-wrap;
+          font-family:${tCS.fontFamily};
+          font-size:${tCS.fontSize};
+          line-height:${tCS.lineHeight};
+          letter-spacing:${tCS.letterSpacing};
+          color:${tCS.color};
+          filter:url(#fx);
+          transform-origin:${tCS.transformOrigin};
+          transform:${tCS.transform};
+          font-variation-settings:${tCS.fontVariationSettings};
+          font-weight:${tCS.fontWeight};
+          -webkit-text-size-adjust:100%;
+        }`;
+
+      const xhtml = `
+        <div xmlns="http://www.w3.org/1999/xhtml">
+          <style>${css}</style>
+          <div id="wrap"><div id="t">${escHtml(st.text)}</div></div>
+        </div>`;
+
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}">
+          <defs>
+            <filter id="fx">
+              <feTurbulence type="fractalNoise" baseFrequency="${(0.006 + st.k*0.00018).toFixed(4)}" numOctaves="2" seed="2" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="${st.k}" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+              <feGaussianBlur in="displaced" stdDeviation="${(+st.b).toFixed(2)}"/>
+            </filter>
+          </defs>
+          <rect width="100%" height="100%" fill="${bg}"/>
+          <foreignObject x="0" y="0" width="100%" height="100%">${xhtml}</foreignObject>
+        </svg>`;
+
+      const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+
+      try{
+        const img = new Image();
+        img.decoding = "async";
+        img.src = url;
+
+        await new Promise((res, rej) => {
+          img.onload = () => res();
+          img.onerror = () => rej(new Error("PNG export failed to load SVG image."));
+        });
+
+        const dpr = devicePixelRatio || 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(svgW * dpr);
+        canvas.height = Math.round(svgH * dpr);
+        const ctx = canvas.getContext("2d");
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.drawImage(img, 0, 0, svgW, svgH);
+
+        const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+        if(!blob) throw new Error("PNG export failed to create blob.");
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "typefx.png";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
     function tick(ts){
       const target = +fps.value;
 
@@ -282,7 +323,6 @@ Edit me in real time.</div>
       while(acc >= step){
         seed = (seed + 1) % 9999;
         tb.setAttribute("seed", seed);
-        if(+n.value > 0) drawNoise();
         acc -= step;
       }
 
@@ -295,16 +335,15 @@ Edit me in real time.</div>
       if(+a3.value > 0) upd();
     }, { passive:true });
 
-    addEventListener("resize", () => { drawNoise(); }, { passive:true });
-
-    [font, fs, w, s, k, b, n, a3, p3, hue, fps].forEach(el => {
-      el.addEventListener("input", () => {
-        if(el === n) drawNoise();
-        upd();
-      });
+    [font, fs, w, s, k, b, a3, p3, hue, fps].forEach(el => {
+      el.addEventListener("input", upd);
     });
 
     t.addEventListener("input", upd);
+
+    $("dlpng").addEventListener("click", () => {
+      downloadPNG().catch(err => alert(err.message));
+    });
 
     $("dljson").addEventListener("click", () => {
       download("typefx-preset.json", "application/json", JSON.stringify(getState(), null, 2));
@@ -337,7 +376,6 @@ Edit me in real time.</div>
     });
 
     loadLocal();
-    drawNoise();
     upd();
     requestAnimationFrame(tick);
   </script>
