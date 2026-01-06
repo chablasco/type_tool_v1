@@ -47,4 +47,13 @@ Change me in real time.</div>
     tb.setAttribute('baseFrequency',(0.006+(+k.value)*0.00018).toFixed(4));
   }
   [w,s,k].forEach(el=>el.addEventListener('input',upd)); upd();
+
+  function mousePressed() {
+  fullscreen(!fullscreen());
+  }
+
+  function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setupGrid();
+    
 </script>
