@@ -210,5 +210,14 @@ loadLocal();
 drawNoise();
 upd();
 requestAnimationFrame(tick);
+
+function mousePressed() {
+  fullscreen(!fullscreen());
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setupGrid();
+  
 </script>
 </body></html>
