@@ -1,223 +1,345 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CB Type FX Tool v1</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,wdth@8..144,100..1000,25..151&family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@200..700&family=Playfair+Display:wght@400..900&display=swap" rel="stylesheet">
-<style>
-:root{--h:215;--uiA:.88;--uiBg:hsl(var(--h) 35% 11% / var(--uiA));--uiBd:hsl(var(--h) 35% 24% / .9);--uiTx:hsl(var(--h) 20% 92% / .95)}
-html,body{height:100%;margin:0;background:#0b0c10;color:#e9eef7;font:14px/1.2 system-ui}
-#ui{position:fixed;left:12px;top:12px;z-index:9;background:var(--uiBg);border:1px solid var(--uiBd);color:var(--uiTx);
-  padding:10px 12px;border-radius:12px;backdrop-filter:blur(10px);width:290px}
-label{display:block;margin:8px 0 2px;opacity:.92} input,select,button{width:100%}
-.row{display:flex;gap:8px}.row>*{flex:1} small{opacity:.75}
-button{margin-top:8px;border:1px solid var(--uiBd);background:hsl(var(--h) 35% 16% / .9);color:var(--uiTx);padding:8px 10px;border-radius:10px;cursor:pointer}
-button:active{transform:translateY(1px)}
-#wrap{height:100%;display:grid;place-items:center;padding:56px 24px}
-#t{max-width:min(1100px,92vw);outline:none;white-space:pre-wrap;transform-origin:0 0;will-change:transform,filter;
-  font-size:64px;line-height:1.05;letter-spacing:-.02em}
-#grain{position:fixed;inset:0;pointer-events:none;opacity:0;mix-blend-mode:overlay}
-</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Type FX Tool</title>
 
-<div id="ui">
-  <div class="row">
-    <div><label>Font</label>
-      <select id="font">
-        <option value="Roboto Flex">Roboto Flex (variable)</option>
-        <option value="Inter">Inter</option>
-        <option value="Space Grotesk">Space Grotesk</option>
-        <option value="IBM Plex Mono">IBM Plex Mono</option>
-        <option value="Playfair Display">Playfair Display</option>
-      </select>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,wdth@8..144,100..1000,25..151&family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@200..700&family=Playfair+Display:wght@400..900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --h: 215;
+      --uiA: .88;
+      --uiBg: hsl(var(--h) 35% 11% / var(--uiA));
+      --uiBd: hsl(var(--h) 35% 24% / .9);
+      --uiTx: hsl(var(--h) 20% 92% / .95);
+    }
+    html,body{height:100%;margin:0;background:#0b0c10;color:#e9eef7;font:14px/1.2 system-ui}
+    #ui{
+      position:fixed;left:12px;top:12px;z-index:9;
+      background:var(--uiBg);border:1px solid var(--uiBd);color:var(--uiTx);
+      padding:10px 12px;border-radius:12px;backdrop-filter:blur(10px);
+      width:300px
+    }
+    label{display:block;margin:8px 0 2px;opacity:.92}
+    input,select,button{width:100%}
+    .row{display:flex;gap:8px}
+    .row>*{flex:1}
+    small{opacity:.75;display:block;margin-top:6px}
+    button{
+      margin-top:8px;border:1px solid var(--uiBd);
+      background:hsl(var(--h) 35% 16% / .9);color:var(--uiTx);
+      padding:8px 10px;border-radius:10px;cursor:pointer
+    }
+    button:active{transform:translateY(1px)}
+    #wrap{height:100%;display:grid;place-items:center;padding:56px 24px}
+    #t{
+      max-width:min(1100px,92vw);
+      outline:none;
+      white-space:pre-wrap;
+      transform-origin:0 0;
+      will-change:transform,filter;
+      font-size:64px;
+      line-height:1.05;
+      letter-spacing:-.02em;
+      filter:url(#fx);
+    }
+    #grain{position:fixed;inset:0;pointer-events:none;opacity:0;mix-blend-mode:overlay}
+  </style>
+</head>
+
+<body>
+  <div id="ui">
+    <div class="row">
+      <div>
+        <label>Font</label>
+        <select id="font">
+          <option value="Roboto Flex">Roboto Flex (variable)</option>
+          <option value="Inter">Inter</option>
+          <option value="Space Grotesk">Space Grotesk</option>
+          <option value="IBM Plex Mono">IBM Plex Mono</option>
+          <option value="Playfair Display">Playfair Display</option>
+        </select>
+      </div>
+      <div>
+        <label>Size</label>
+        <input id="fs" type="range" min="18" max="180" value="64" />
+      </div>
     </div>
-    <div><label>Size</label><input id="fs" type="range" min="18" max="160" value="64"></div>
+
+    <div class="row">
+      <div><label>Weight</label><input id="w" type="range" min="100" max="1000" value="450" /></div>
+      <div><label>Stretch</label><input id="s" type="range" min="50" max="200" value="100" /></div>
+    </div>
+
+    <label>Distortion</label><input id="k" type="range" min="0" max="140" value="12" />
+    <label>Blur</label><input id="b" type="range" min="0" max="24" value="0" />
+    <label>Noise</label><input id="n" type="range" min="0" max="100" value="0" />
+
+    <div class="row">
+      <div><label>3D amount</label><input id="a3" type="range" min="0" max="100" value="0" /></div>
+      <div><label>Perspective</label><input id="p3" type="range" min="200" max="2000" value="900" /></div>
+    </div>
+
+    <div class="row">
+      <div><label>UI hue</label><input id="hue" type="range" min="0" max="360" value="215" /></div>
+      <div><label>Animation FPS</label><input id="fps" type="range" min="0" max="60" value="24" /></div>
+    </div>
+
+    <button id="dljson">Download preset (.json)</button>
+    <button id="dlhtml">Download snapshot (.html)</button>
+    <small>Click text to edit. Settings autosave locally.</small>
   </div>
 
-  <div class="row">
-    <div><label>Weight</label><input id="w" type="range" min="100" max="1000" value="450"></div>
-    <div><label>Stretch</label><input id="s" type="range" min="50" max="200" value="100"></div>
-  </div>
+  <canvas id="grain"></canvas>
 
-  <label>Distortion</label><input id="k" type="range" min="0" max="120" value="12">
-  <label>Blur</label><input id="b" type="range" min="0" max="20" value="0">
-  <label>Noise</label><input id="n" type="range" min="0" max="100" value="0">
-
-  <div class="row">
-    <div><label>3D amount</label><input id="a3" type="range" min="0" max="100" value="0"></div>
-    <div><label>Perspective</label><input id="p3" type="range" min="200" max="2000" value="900"></div>
-  </div>
-
-  <div class="row">
-    <div><label>UI hue</label><input id="hue" type="range" min="0" max="360" value="215"></div>
-    <div><label>Animation FPS</label><input id="fps" type="range" min="0" max="60" value="24"></div>
-  </div>
-
-  <button id="dljson">Download preset (.json)</button>
-  <button id="dlhtml">Download snapshot (.html)</button>
-  <small>Click text to edit. Settings autosave locally.</small>
-</div>
-
-<canvas id="grain"></canvas>
-
-<div id="wrap">
-  <div id="t" contenteditable="true" spellcheck="false">Type something…
+  <div id="wrap">
+    <div id="t" contenteditable="true" spellcheck="false">Type something…
 Edit me in real time.</div>
-</div>
+  </div>
 
-<svg width="0" height="0" style="position:absolute">
-  <filter id="d">
-    <feTurbulence id="tb" type="fractalNoise" baseFrequency=".012" numOctaves="2" seed="2"/>
-    <feDisplacementMap id="dm" in="SourceGraphic" scale="12"/>
-  </filter>
-</svg>
+  <!-- FX FILTER (distortion + blur in SVG for better browser compatibility) -->
+  <svg width="0" height="0" style="position:absolute">
+    <filter id="fx">
+      <feTurbulence id="tb" type="fractalNoise" baseFrequency=".012" numOctaves="2" seed="2" result="noise"/>
+      <feDisplacementMap id="dm" in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+      <feGaussianBlur id="gb" in="displaced" stdDeviation="0"/>
+    </filter>
+  </svg>
 
-<script>
-const $=id=>document.getElementById(id);
-const t=$("t"),font=$("font"),fs=$("fs"),w=$("w"),s=$("s"),k=$("k"),b=$("b"),n=$("n"),a3=$("a3"),p3=$("p3"),hue=$("hue"),fps=$("fps");
-const dm=$("dm"),tb=$("tb"),grain=$("grain"),g=grain.getContext("2d",{alpha:true});
-let mx=0,my=0,seed=2,last=0,acc=0;
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-function setVarFont(){
-  const isFlex = font.value==="Roboto Flex";
-  t.style.fontFamily = `"${font.value}",system-ui`;
-  if(isFlex){
-    t.style.fontVariationSettings = `"wght" ${w.value},"wdth" ${s.value}`;
-    t.style.fontWeight = 400;
-  }else{
-    t.style.fontVariationSettings = "normal";
-    t.style.fontWeight = Math.round((+w.value-100)/900*800+100);
-  }
-}
+    const t = $("t"),
+      font = $("font"), fs = $("fs"),
+      w = $("w"), s = $("s"),
+      k = $("k"), b = $("b"), n = $("n"),
+      a3 = $("a3"), p3 = $("p3"),
+      hue = $("hue"), fps = $("fps");
 
-function drawNoise(){
-  const inten=+n.value/100;
-  const dpr=devicePixelRatio||1;
-  grain.width=innerWidth*dpr; grain.height=innerHeight*dpr;
-  grain.style.width=innerWidth+"px"; grain.style.height=innerHeight+"px";
-  g.setTransform(dpr,0,0,dpr,0,0);
-  g.clearRect(0,0,innerWidth,innerHeight);
-  if(inten<=0){ grain.style.opacity=0; return; }
-  const step = Math.max(1, Math.round(6 - inten*5)); // higher inten -> denser
-  const img=g.createImageData(innerWidth,innerHeight);
-  for(let y=0;y<innerHeight;y+=step){
-    for(let x=0;x<innerWidth;x+=step){
-      const v=(Math.random()*255)|0, a=Math.round(inten*70);
-      for(let yy=0;yy<step;yy++)for(let xx=0;xx<step;xx++){
-        const i=((x+xx)+(y+yy)*innerWidth)*4;
-        if(i>=0 && i<img.data.length){img.data[i]=v;img.data[i+1]=v;img.data[i+2]=v;img.data[i+3]=a;}
+    const dm = $("dm"), tb = $("tb"), gb = $("gb");
+    const grain = $("grain"), g = grain.getContext("2d", { alpha:true });
+
+    let mx = 0, my = 0, seed = 2, last = 0, acc = 0;
+
+    function setVarFont(){
+      const isFlex = (font.value === "Roboto Flex");
+      t.style.fontFamily = `"${font.value}", system-ui`;
+
+      if(isFlex){
+        t.style.fontVariationSettings = `"wght" ${w.value}, "wdth" ${s.value}`;
+        t.style.fontWeight = 400;
+      }else{
+        t.style.fontVariationSettings = "normal";
+        const mapped = Math.round((+w.value - 100) / 900 * 800 + 100);
+        t.style.fontWeight = mapped;
       }
     }
-  }
-  g.putImageData(img,0,0);
-  grain.style.opacity=Math.min(1, inten*1.2);
-}
 
-function upd(){
-  document.documentElement.style.setProperty("--h", hue.value);
-  t.style.fontSize = fs.value+"px";
-  setVarFont();
+    function drawNoise(){
+      const inten = +n.value / 100;
+      const dpr = devicePixelRatio || 1;
 
-  dm.setAttribute("scale", k.value);
-  tb.setAttribute("baseFrequency", (0.006 + (+k.value)*0.00018).toFixed(4));
+      grain.width = innerWidth * dpr;
+      grain.height = innerHeight * dpr;
+      grain.style.width = innerWidth + "px";
+      grain.style.height = innerHeight + "px";
 
-  const blur = +b.value;
-  t.style.filter = `url(#d) blur(${blur}px)`;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, innerWidth, innerHeight);
 
-  const stretch = (+s.value)/100;
-  const persp = +p3.value;
-  const amt = (+a3.value)/100;
-  const rx = (-my*amt*18).toFixed(3), ry = (mx*amt*22).toFixed(3);
-  t.style.transform = `perspective(${persp}px) rotateX(${rx}deg) rotateY(${ry}deg) scaleX(${stretch})`;
+      if(inten <= 0){
+        grain.style.opacity = 0;
+        return;
+      }
 
-  saveLocal();
-}
-function saveLocal(){
-  const st=getState();
-  localStorage.setItem("typefx_state_v1", JSON.stringify(st));
-}
-function loadLocal(){
-  try{
-    const raw=localStorage.getItem("typefx_state_v1"); if(!raw) return;
-    const st=JSON.parse(raw);
-    t.textContent=st.text ?? t.textContent;
-    font.value=st.font ?? font.value;
-    fs.value=st.fs ?? fs.value;
-    w.value=st.w ?? w.value;
-    s.value=st.s ?? s.value;
-    k.value=st.k ?? k.value;
-    b.value=st.b ?? b.value;
-    n.value=st.n ?? n.value;
-    a3.value=st.a3 ?? a3.value;
-    p3.value=st.p3 ?? p3.value;
-    hue.value=st.hue ?? hue.value;
-    fps.value=st.fps ?? fps.value;
-  }catch(e){}
-}
-function getState(){
-  return {text:t.textContent,font:font.value,fs:+fs.value,w:+w.value,s:+s.value,k:+k.value,b:+b.value,n:+n.value,a3:+a3.value,p3:+p3.value,hue:+hue.value,fps:+fps.value};
-}
-function download(name, mime, content){
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([content],{type:mime}));
-  a.download=name; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),500);
-}
+      const step = Math.max(1, Math.round(6 - inten * 5));
+      const img = g.createImageData(innerWidth, innerHeight);
 
-function tick(ts){
-  const target=+fps.value;
-  if(target<=0){ last=ts; requestAnimationFrame(tick); return; }
-  const dt=ts-last; last=ts; acc+=dt;
-  const step=1000/target;
-  while(acc>=step){
-    seed=(seed+1)%9999;
-    tb.setAttribute("seed", seed);
-    if(+n.value>0) drawNoise();
-    acc-=step;
-  }
-  requestAnimationFrame(tick);
-}
+      for(let y = 0; y < innerHeight; y += step){
+        for(let x = 0; x < innerWidth; x += step){
+          const v = (Math.random() * 255) | 0;
+          const a = Math.round(inten * 70);
+          for(let yy = 0; yy < step; yy++){
+            for(let xx = 0; xx < step; xx++){
+              const px = x + xx, py = y + yy;
+              if(px >= innerWidth || py >= innerHeight) continue;
+              const i = (px + py * innerWidth) * 4;
+              img.data[i] = v;
+              img.data[i+1] = v;
+              img.data[i+2] = v;
+              img.data[i+3] = a;
+            }
+          }
+        }
+      }
+      g.putImageData(img, 0, 0);
+      grain.style.opacity = Math.min(1, inten * 1.2);
+    }
 
-addEventListener("mousemove",e=>{
-  mx=(e.clientX/innerWidth-.5)*2;
-  my=(e.clientY/innerHeight-.5)*2;
-  if(+a3.value>0) upd();
-},{passive:true});
-addEventListener("resize", ()=>{ drawNoise(); }, {passive:true});
+    function getState(){
+      return {
+        text: t.textContent,
+        font: font.value,
+        fs: +fs.value,
+        w: +w.value,
+        s: +s.value,
+        k: +k.value,
+        b: +b.value,
+        n: +n.value,
+        a3: +a3.value,
+        p3: +p3.value,
+        hue: +hue.value,
+        fps: +fps.value
+      };
+    }
 
-[font,fs,w,s,k,b,n,a3,p3,hue,fps].forEach(el=>el.addEventListener("input",()=>{
-  if(el===n) drawNoise();
-  upd();
-}));
-t.addEventListener("input", upd);
+    function saveLocal(){
+      localStorage.setItem("typefx_state_v2", JSON.stringify(getState()));
+    }
 
-$("dljson").addEventListener("click", ()=>{
-  download("typefx-preset.json","application/json", JSON.stringify(getState(),null,2));
-});
-$("dlhtml").addEventListener("click", ()=>{
-  const st=getState();
-  const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-  const html=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    function loadLocal(){
+      try{
+        const raw = localStorage.getItem("typefx_state_v2");
+        if(!raw) return;
+        const st = JSON.parse(raw);
+
+        t.textContent = st.text ?? t.textContent;
+        font.value = st.font ?? font.value;
+        fs.value = st.fs ?? fs.value;
+        w.value = st.w ?? w.value;
+        s.value = st.s ?? s.value;
+        k.value = st.k ?? k.value;
+        b.value = st.b ?? b.value;
+        n.value = st.n ?? n.value;
+        a3.value = st.a3 ?? a3.value;
+        p3.value = st.p3 ?? p3.value;
+        hue.value = st.hue ?? hue.value;
+        fps.value = st.fps ?? fps.value;
+      }catch(e){}
+    }
+
+    function upd(){
+      document.documentElement.style.setProperty("--h", hue.value);
+
+      t.style.fontSize = fs.value + "px";
+      setVarFont();
+
+      // distortion strength
+      dm.setAttribute("scale", k.value);
+
+      // turbulence frequency scaled by distortion
+      tb.setAttribute("baseFrequency", (0.006 + (+k.value) * 0.00018).toFixed(4));
+
+      // blur inside SVG filter (more reliable than mixing CSS blur with url(#filter))
+      gb.setAttribute("stdDeviation", (+b.value).toFixed(2));
+
+      // 3D tilt based on mouse, plus stretch
+      const stretch = (+s.value) / 100;
+      const persp = +p3.value;
+      const amt = (+a3.value) / 100;
+      const rx = (-my * amt * 18).toFixed(3);
+      const ry = ( mx * amt * 22).toFixed(3);
+
+      t.style.transform = `perspective(${persp}px) rotateX(${rx}deg) rotateY(${ry}deg) scaleX(${stretch})`;
+
+      saveLocal();
+    }
+
+    function download(name, mime, content){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+    }
+
+    function escHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
+
+    function tick(ts){
+      const target = +fps.value;
+
+      if(target <= 0){
+        last = ts;
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      const dt = ts - last;
+      last = ts;
+      acc += dt;
+
+      const step = 1000 / target;
+
+      while(acc >= step){
+        seed = (seed + 1) % 9999;
+        tb.setAttribute("seed", seed);
+        if(+n.value > 0) drawNoise();
+        acc -= step;
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    addEventListener("mousemove", (e) => {
+      mx = (e.clientX / innerWidth - .5) * 2;
+      my = (e.clientY / innerHeight - .5) * 2;
+      if(+a3.value > 0) upd();
+    }, { passive:true });
+
+    addEventListener("resize", () => { drawNoise(); }, { passive:true });
+
+    [font, fs, w, s, k, b, n, a3, p3, hue, fps].forEach(el => {
+      el.addEventListener("input", () => {
+        if(el === n) drawNoise();
+        upd();
+      });
+    });
+
+    t.addEventListener("input", upd);
+
+    $("dljson").addEventListener("click", () => {
+      download("typefx-preset.json", "application/json", JSON.stringify(getState(), null, 2));
+    });
+
+    $("dlhtml").addEventListener("click", () => {
+      const st = getState();
+      const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Type FX Snapshot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,wdth@8..144,100..1000,25..151&family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@200..700&family=Playfair+Display:wght@400..900&display=swap" rel="stylesheet">
-<style>html,body{height:100%;margin:0;display:grid;place-items:center;background:#0b0c10;color:#e9eef7}
-#t{max-width:min(1100px,92vw);white-space:pre-wrap;transform-origin:0 0;font-family:"${st.font}",system-ui;font-size:${st.fs}px;line-height:1.05;letter-spacing:-.02em;
-filter:url(#d) blur(${st.b}px);transform:perspective(${st.p3}px) rotateX(0deg) rotateY(0deg) scaleX(${st.s/100})}
-</style><div id="t">${esc(st.text)}</div>
-<svg width="0" height="0" style="position:absolute"><filter id="d"><feTurbulence type="fractalNoise" baseFrequency="${(0.006+st.k*0.00018).toFixed(4)}" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="${st.k}"/></filter></svg>`;
-  download("typefx-snapshot.html","text/html", html);
-});
+<style>
+  html,body{height:100%;margin:0;display:grid;place-items:center;background:#0b0c10;color:#e9eef7}
+  #t{max-width:min(1100px,92vw);white-space:pre-wrap;transform-origin:0 0;
+     font-family:"${st.font}",system-ui;font-size:${st.fs}px;line-height:1.05;letter-spacing:-.02em;
+     font-variation-settings:${st.font==="Roboto Flex" ? `"wght" ${st.w}, "wdth" ${st.s}` : "normal"};
+     font-weight:${st.font==="Roboto Flex" ? 400 : Math.round((st.w-100)/900*800+100)};
+     filter:url(#fx);
+     transform:perspective(${st.p3}px) rotateX(0deg) rotateY(0deg) scaleX(${st.s/100});}
+</style>
+<div id="t">${escHtml(st.text)}</div>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="fx">
+    <feTurbulence type="fractalNoise" baseFrequency="${(0.006 + st.k*0.00018).toFixed(4)}" numOctaves="2" seed="2" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="${st.k}" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+    <feGaussianBlur in="displaced" stdDeviation="${(+st.b).toFixed(2)}"/>
+  </filter>
+</svg>`;
+      download("typefx-snapshot.html", "text/html", html);
+    });
 
-loadLocal();
-drawNoise();
-upd();
-requestAnimationFrame(tick);
-
-function mousePressed() {
-  fullscreen(!fullscreen());
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  setupGrid();
-  
-</script>
-</body></html>
+    loadLocal();
+    drawNoise();
+    upd();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
