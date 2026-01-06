@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="sv">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CB Type FX Tool</title>
+  <title>Type FX Tool</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,23 +11,21 @@
 
   <style>
     :root{
-      --h: 215;
-      --uiA: .88;
-      --uiBg: hsl(var(--h) 35% 11% / var(--uiA));
-      --uiBd: hsl(var(--h) 35% 24% / .9);
-      --uiTx: hsl(var(--h) 20% 92% / .95);
+      --h:215; --uiA:.88;
+      --uiBg:hsl(var(--h) 35% 11% / var(--uiA));
+      --uiBd:hsl(var(--h) 35% 24% / .9);
+      --uiTx:hsl(var(--h) 20% 92% / .95);
     }
     html,body{height:100%;margin:0;background:#0b0c10;color:#e9eef7;font:14px/1.2 system-ui}
     #ui{
-      position:fixed;left:12px;top:12px;z-index:9;
+      position:fixed;left:12px;top:12px;z-index:9;width:320px;
       background:var(--uiBg);border:1px solid var(--uiBd);color:var(--uiTx);
       padding:10px 12px;border-radius:12px;backdrop-filter:blur(10px);
-      width:300px
+      max-height:calc(100% - 24px);overflow:auto
     }
     label{display:block;margin:8px 0 2px;opacity:.92}
     input,select,button{width:100%}
-    .row{display:flex;gap:8px}
-    .row>*{flex:1}
+    .row{display:flex;gap:8px}.row>*{flex:1}
     small{opacity:.75;display:block;margin-top:6px}
     button{
       margin-top:8px;border:1px solid var(--uiBd);
@@ -35,19 +33,27 @@
       padding:8px 10px;border-radius:10px;cursor:pointer
     }
     button:active{transform:translateY(1px)}
+    details{border:1px solid var(--uiBd);border-radius:12px;padding:8px 10px;margin-top:8px}
+    details>summary{cursor:pointer;user-select:none;opacity:.95}
+    .chk{display:flex;align-items:center;gap:8px;margin-top:6px}
+    .chk input{width:auto}
     #wrap{height:100%;display:grid;place-items:center;padding:56px 24px}
     #t{
       max-width:min(1100px,92vw);
-      outline:none;
-      white-space:pre-wrap;
-      transform-origin:0 0;
-     img_TEXTCOLOR
-      will-change:transform,filter;
-      font-size:64px;
-      line-height:1.05;
-      letter-spacing:-.02em;
+      outline:none;white-space:pre-wrap;transform-origin:0 0;
+      will-change:filter,transform;
+      font-size:64px;line-height:1.05;letter-spacing:-.02em;
       filter:url(#fx);
     }
+    /* Gradient fill (enabled by JS) */
+    #t.grad{
+      color:transparent;
+      background:linear-gradient(var(--ga,90deg), var(--g1,#8cf), var(--g2,#f8c), var(--g3,#cfc));
+      background-size:200% 200%;
+      -webkit-background-clip:text;background-clip:text;
+    }
+    /* Pixel overlay (simple) */
+    #pix{position:fixed;inset:0;pointer-events:none;display:none}
   </style>
 </head>
 
@@ -75,106 +81,336 @@
       <div><label>Stretch</label><input id="s" type="range" min="50" max="200" value="100" /></div>
     </div>
 
-    <label>Distortion</label><input id="k" type="range" min="0" max="140" value="12" />
+    <label>Distortion</label><input id="k" type="range" min="0" max="160" value="12" />
     <label>Blur</label><input id="b" type="range" min="0" max="24" value="0" />
-
-    <div class="row">
-      <div><label>3D amount</label><input id="a3" type="range" min="0" max="100" value="0" /></div>
-      <div><label>Perspective</label><input id="p3" type="range" min="200" max="2000" value="900" /></div>
-    </div>
 
     <div class="row">
       <div><label>UI hue</label><input id="hue" type="range" min="0" max="360" value="215" /></div>
       <div><label>Animation FPS</label><input id="fps" type="range" min="0" max="60" value="24" /></div>
     </div>
 
+    <details open>
+      <summary>FX choices</summary>
+
+      <div class="chk"><input id="fx_rgb" type="checkbox"><label for="fx_rgb" style="margin:0">Chromatic aberration (RGB split)</label></div>
+      <div class="row">
+        <div><label>RGB amount</label><input id="rgb_amt" type="range" min="0" max="20" value="6"></div>
+        <div><label>RGB angle</label><input id="rgb_ang" type="range" min="0" max="360" value="0"></div>
+      </div>
+
+      <div class="chk"><input id="fx_shadow" type="checkbox"><label for="fx_shadow" style="margin:0">Drop shadow</label></div>
+      <div class="row">
+        <div><label>Shadow x</label><input id="shx" type="range" min="-40" max="40" value="8"></div>
+        <div><label>Shadow y</label><input id="shy" type="range" min="-40" max="40" value="10"></div>
+      </div>
+      <label>Shadow blur</label><input id="shb" type="range" min="0" max="40" value="14">
+
+      <div class="chk"><input id="fx_outline" type="checkbox"><label for="fx_outline" style="margin:0">Outline / stroke</label></div>
+      <div class="row">
+        <div><label>Stroke</label><input id="st_w" type="range" min="0" max="10" value="2"></div>
+        <div><label>Stroke alpha</label><input id="st_a" type="range" min="0" max="100" value="85"></div>
+      </div>
+
+      <div class="chk"><input id="fx_inner" type="checkbox"><label for="fx_inner" style="margin:0">Inner shadow</label></div>
+      <div class="row">
+        <div><label>Inner x</label><input id="inx" type="range" min="-30" max="30" value="0"></div>
+        <div><label>Inner y</label><input id="iny" type="range" min="-30" max="30" value="6"></div>
+      </div>
+      <label>Inner blur</label><input id="inb" type="range" min="0" max="30" value="10">
+
+      <div class="chk"><input id="fx_glow" type="checkbox"><label for="fx_glow" style="margin:0">Glow / neon bloom</label></div>
+      <label>Glow strength</label><input id="glow" type="range" min="0" max="40" value="18">
+
+      <div class="chk"><input id="fx_wave" type="checkbox"><label for="fx_wave" style="margin:0">Wave warp (animated)</label></div>
+      <div class="row">
+        <div><label>Wave speed</label><input id="ws" type="range" min="0" max="200" value="60"></div>
+        <div><label>Wave freq</label><input id="wf" type="range" min="1" max="50" value="12"></div>
+      </div>
+
+      <div class="chk"><input id="fx_smear" type="checkbox"><label for="fx_smear" style="margin:0">Motion smear</label></div>
+      <div class="row">
+        <div><label>Smear len</label><input id="sm_l" type="range" min="0" max="30" value="10"></div>
+        <div><label>Smear ang</label><input id="sm_a" type="range" min="0" max="360" value="20"></div>
+      </div>
+
+      <div class="chk"><input id="fx_pixel" type="checkbox"><label for="fx_pixel" style="margin:0">Pixelation / mosaic (simple)</label></div>
+      <label>Pixel size</label><input id="px" type="range" min="2" max="40" value="10">
+
+      <div class="chk"><input id="fx_post" type="checkbox"><label for="fx_post" style="margin:0">Posterize</label></div>
+      <label>Poster levels</label><input id="pl" type="range" min="2" max="10" value="4">
+
+      <div class="chk"><input id="fx_thr" type="checkbox"><label for="fx_thr" style="margin:0">Threshold (high contrast)</label></div>
+      <label>Threshold</label><input id="th" type="range" min="0" max="100" value="55">
+
+      <div class="chk"><input id="fx_grad" type="checkbox"><label for="fx_grad" style="margin:0">Gradient fill (animated)</label></div>
+      <div class="row">
+        <div><label>Grad speed</label><input id="gs" type="range" min="0" max="200" value="60"></div>
+        <div><label>Grad angle</label><input id="ga" type="range" min="0" max="360" value="90"></div>
+      </div>
+    </details>
+
     <button id="dlpng">Download PNG (.png)</button>
     <button id="dljson">Download preset (.json)</button>
-    <button id="dlhtml">Download snapshot (.html)</button>
     <small>Click text to edit. Settings autosave locally.</small>
   </div>
+
+  <canvas id="pix"></canvas>
 
   <div id="wrap">
     <div id="t" contenteditable="true" spellcheck="false">Type something…
 Edit me in real time.</div>
   </div>
 
-  <!-- FX FILTER (distortion + blur in SVG) -->
+  <!-- Combined filter: distortion + blur + optional shadows + optional posterize/threshold -->
   <svg width="0" height="0" style="position:absolute">
-    <filter id="fx">
+    <filter id="fx" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
       <feTurbulence id="tb" type="fractalNoise" baseFrequency=".012" numOctaves="2" seed="2" result="noise"/>
-      <feDisplacementMap id="dm" in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-      <feGaussianBlur id="gb" in="displaced" stdDeviation="0"/>
+      <feDisplacementMap id="dm" in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+      <feGaussianBlur id="gb" in="disp" stdDeviation="0" result="blur"/>
+
+      <!-- Posterize / Threshold (defaults to pass-through) -->
+      <feComponentTransfer id="ct" in="blur" result="tone">
+        <feFuncR id="cr" type="identity"/>
+        <feFuncG id="cg" type="identity"/>
+        <feFuncB id="cb" type="identity"/>
+      </feComponentTransfer>
+
+      <!-- Outer shadow -->
+      <feDropShadow id="ds" in="tone" dx="0" dy="0" stdDeviation="0" flood-color="rgba(0,0,0,0)" result="shadowed"/>
+
+      <!-- Inner shadow (defaults off) -->
+      <feColorMatrix in="SourceAlpha" type="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="alpha"/>
+      <feOffset id="in_off" in="alpha" dx="0" dy="0" result="in_off_o"/>
+      <feGaussianBlur id="in_blur" in="in_off_o" stdDeviation="0" result="in_blur_o"/>
+      <feComposite in="in_blur_o" in2="alpha" operator="out" result="in_cut"/>
+      <feFlood id="in_flood" flood-color="rgba(0,0,0,0)" result="in_col"/>
+      <feComposite in="in_col" in2="in_cut" operator="in" result="in_shadow"/>
+      <feComposite in="shadowed" in2="in_shadow" operator="over" result="final"/>
+
+      <feComposite in="final" in2="final" operator="over"/>
     </filter>
   </svg>
 
   <script>
     const $ = (id) => document.getElementById(id);
 
-    const t = $("t"),
-      wrap = $("wrap"),
-      font = $("font"), fs = $("fs"),
-      w = $("w"), s = $("s"),
-      k = $("k"), b = $("b"),
-      a3 = $("a3"), p3 = $("p3"),
-      hue = $("hue"), fps = $("fps");
+    const t=$("t"), font=$("font"), fs=$("fs"), w=$("w"), s=$("s"), k=$("k"), b=$("b"), hue=$("hue"), fps=$("fps");
+    const tb=$("tb"), dm=$("dm"), gb=$("gb"), ds=$("ds");
+    const ct=$("ct"), cr=$("cr"), cg=$("cg"), cb=$("cb");
+    const in_off=$("in_off"), in_blur=$("in_blur"), in_flood=$("in_flood");
 
-    const dm = $("dm"), tb = $("tb"), gb = $("gb");
+    const fx_rgb=$("fx_rgb"), rgb_amt=$("rgb_amt"), rgb_ang=$("rgb_ang");
+    const fx_shadow=$("fx_shadow"), shx=$("shx"), shy=$("shy"), shb=$("shb");
+    const fx_outline=$("fx_outline"), st_w=$("st_w"), st_a=$("st_a");
+    const fx_inner=$("fx_inner"), inx=$("inx"), iny=$("iny"), inb=$("inb");
+    const fx_glow=$("fx_glow"), glow=$("glow");
+    const fx_wave=$("fx_wave"), ws=$("ws"), wf=$("wf");
+    const fx_smear=$("fx_smear"), sm_l=$("sm_l"), sm_a=$("sm_a");
+    const fx_pixel=$("fx_pixel"), px=$("px");
+    const fx_post=$("fx_post"), pl=$("pl");
+    const fx_thr=$("fx_thr"), th=$("th");
+    const fx_grad=$("fx_grad"), gs=$("gs"), ga=$("ga");
 
-    let mx = 0, my = 0, seed = 2, last = 0, acc = 0;
+    const pix=$("pix"), pg=pix.getContext("2d");
+
+    let seed=2, last=0, acc=0, tt=0;
 
     function setVarFont(){
-      const isFlex = (font.value === "Roboto Flex");
+      const isFlex = (font.value==="Roboto Flex");
       t.style.fontFamily = `"${font.value}", system-ui`;
-
       if(isFlex){
         t.style.fontVariationSettings = `"wght" ${w.value}, "wdth" ${s.value}`;
         t.style.fontWeight = 400;
       }else{
         t.style.fontVariationSettings = "normal";
-        const mapped = Math.round((+w.value - 100) / 900 * 800 + 100);
-        t.style.fontWeight = mapped;
+        t.style.fontWeight = Math.round((+w.value-100)/900*800+100);
       }
     }
 
+    function applyRGBShadows(){
+      if(!fx_rgb.checked){ return ""; }
+      const a=+rgb_amt.value;
+      const ang=(+rgb_ang.value)*Math.PI/180;
+      const dx=Math.cos(ang)*a, dy=Math.sin(ang)*a;
+      const r=`${dx}px ${dy}px 0 rgba(255,0,80,.55)`;
+      const b=`${-dx}px ${-dy}px 0 rgba(0,180,255,.55)`;
+      const g=`${(dx*0.2).toFixed(2)}px ${(dy*0.2).toFixed(2)}px 0 rgba(120,255,140,.30)`;
+      return [r,b,g].join(", ");
+    }
+
+    function applySmear(){
+      if(!fx_smear.checked) return "";
+      const len=+sm_l.value;
+      const ang=(+sm_a.value)*Math.PI/180;
+      const dx=Math.cos(ang), dy=Math.sin(ang);
+      const parts=[];
+      for(let i=1;i<=len;i++){
+        const x=(dx*i).toFixed(2), y=(dy*i).toFixed(2);
+        parts.push(`${x}px ${y}px 0 rgba(0,0,0,${Math.max(0,0.22 - i*(0.22/Math.max(1,len))).toFixed(3)})`);
+      }
+      return parts.join(", ");
+    }
+
+    function setStroke(){
+      if(!fx_outline.checked){
+        t.style.webkitTextStroke="0px transparent";
+        return;
+      }
+      const a=(+st_a.value/100).toFixed(3);
+      t.style.webkitTextStroke = `${st_w.value}px rgba(0,0,0,${a})`;
+    }
+
+    function setTone(){
+      if(fx_post.checked){
+        const L=+pl.value;
+        const table=[];
+        for(let i=0;i<L;i++){
+          const v=i/(L-1);
+          table.push(v.toFixed(3));
+        }
+        cr.setAttribute("type","discrete"); cg.setAttribute("type","discrete"); cb.setAttribute("type","discrete");
+        cr.setAttribute("tableValues", table.join(" "));
+        cg.setAttribute("tableValues", table.join(" "));
+        cb.setAttribute("tableValues", table.join(" "));
+        return;
+      }
+      if(fx_thr.checked){
+        const cut=(+th.value/100).toFixed(3);
+        const tv = `0 0 0 0 ${cut} 1 1 1 1`;
+        cr.setAttribute("type","table"); cg.setAttribute("type","table"); cb.setAttribute("type","table");
+        cr.setAttribute("tableValues", tv);
+        cg.setAttribute("tableValues", tv);
+        cb.setAttribute("tableValues", tv);
+        return;
+      }
+      cr.setAttribute("type","identity"); cg.setAttribute("type","identity"); cb.setAttribute("type","identity");
+      cr.removeAttribute("tableValues"); cg.removeAttribute("tableValues"); cb.removeAttribute("tableValues");
+    }
+
+    function setOuterShadow(){
+      if(!(fx_shadow.checked || fx_glow.checked)){
+        ds.setAttribute("dx",0); ds.setAttribute("dy",0);
+        ds.setAttribute("stdDeviation",0);
+        ds.setAttribute("flood-color","rgba(0,0,0,0)");
+        return;
+      }
+      const dx = fx_shadow.checked ? +shx.value : 0;
+      const dy = fx_shadow.checked ? +shy.value : 0;
+      const blur = Math.max(0, (fx_shadow.checked ? +shb.value : 0) + (fx_glow.checked ? +glow.value*0.55 : 0));
+      const alpha = fx_shadow.checked ? 0.55 : 0.0;
+      const glowAlpha = fx_glow.checked ? 0.55 : 0.0;
+      const a = Math.max(alpha, glowAlpha);
+      ds.setAttribute("dx", dx);
+      ds.setAttribute("dy", dy);
+      ds.setAttribute("stdDeviation", blur.toFixed(2));
+      ds.setAttribute("flood-color", `rgba(140,220,255,${(fx_glow.checked?Math.max(a,0.45):a).toFixed(3)})`);
+    }
+
+    function setInnerShadow(){
+      if(!fx_inner.checked){
+        in_off.setAttribute("dx",0); in_off.setAttribute("dy",0);
+        in_blur.setAttribute("stdDeviation",0);
+        in_flood.setAttribute("flood-color","rgba(0,0,0,0)");
+        return;
+      }
+      in_off.setAttribute("dx", +inx.value);
+      in_off.setAttribute("dy", +iny.value);
+      in_blur.setAttribute("stdDeviation", (+inb.value).toFixed(2));
+      in_flood.setAttribute("flood-color","rgba(0,0,0,.65)");
+    }
+
+    function setGradient(){
+      if(!fx_grad.checked){
+        t.classList.remove("grad");
+        t.style.removeProperty("--ga");
+        return;
+      }
+      t.classList.add("grad");
+      t.style.setProperty("--ga", ga.value+"deg");
+    }
+
+    function renderPixelOverlay(){
+      if(!fx_pixel.checked){
+        pix.style.display="none";
+        return;
+      }
+      const dpr=devicePixelRatio||1;
+      pix.style.display="block";
+      pix.width=Math.floor(innerWidth*dpr);
+      pix.height=Math.floor(innerHeight*dpr);
+      pix.style.width=innerWidth+"px";
+      pix.style.height=innerHeight+"px";
+      pg.setTransform(dpr,0,0,dpr,0,0);
+      pg.clearRect(0,0,innerWidth,innerHeight);
+
+      const ps=+px.value;
+      const bw=Math.max(1,Math.floor(innerWidth/ps));
+      const bh=Math.max(1,Math.floor(innerHeight/ps));
+
+      const off=document.createElement("canvas");
+      off.width=bw; off.height=bh;
+      const og=off.getContext("2d");
+      og.clearRect(0,0,bw,bh);
+      og.fillStyle="#0b0c10";
+      og.fillRect(0,0,bw,bh);
+
+      const r=t.getBoundingClientRect();
+      const cx=r.left + r.width/2;
+      const cy=r.top + r.height/2;
+
+      og.textAlign="center";
+      og.textBaseline="middle";
+      og.fillStyle="#e9eef7";
+      og.font=`${getComputedStyle(t).fontWeight} ${Math.max(10, (+fs.value/ps)*1.1)}px ${font.value}, system-ui`;
+      const lines=t.textContent.split("\n");
+      const lh=(+fs.value/ps)*1.15;
+      const startY=(bh/2) - ((lines.length-1)*lh/2);
+      for(let i=0;i<lines.length;i++){
+        og.fillText(lines[i], bw*(cx/innerWidth), startY + i*lh);
+      }
+
+      pg.imageSmoothingEnabled=false;
+      pg.drawImage(off, 0,0,bw,bh, 0,0,innerWidth,innerHeight);
+    }
+
     function getState(){
-      return {
-        text: t.textContent,
-        font: font.value,
-        fs: +fs.value,
-        w: +w.value,
-        s: +s.value,
-        k: +k.value,
-        b: +b.value,
-        a3: +a3.value,
-        p3: +p3.value,
-        hue: +hue.value,
-        fps: +fps.value
-      };
+      const ids=[
+        "font","fs","w","s","k","b","hue","fps",
+        "fx_rgb","rgb_amt","rgb_ang",
+        "fx_shadow","shx","shy","shb",
+        "fx_outline","st_w","st_a",
+        "fx_inner","inx","iny","inb",
+        "fx_glow","glow",
+        "fx_wave","ws","wf",
+        "fx_smear","sm_l","sm_a",
+        "fx_pixel","px",
+        "fx_post","pl",
+        "fx_thr","th",
+        "fx_grad","gs","ga"
+      ];
+      const st={text:t.textContent};
+      for(const id of ids){
+        const el=$(id);
+        st[id] = (el.type==="checkbox") ? el.checked : el.value;
+      }
+      return st;
     }
 
-    function saveLocal(){
-      localStorage.setItem("typefx_state_v3", JSON.stringify(getState()));
+    function loadState(st){
+      if(!st) return;
+      t.textContent = st.text ?? t.textContent;
+      for(const [k,v] of Object.entries(st)){
+        const el=$(k);
+        if(!el) continue;
+        if(el.type==="checkbox") el.checked=!!v;
+        else el.value=v;
+      }
     }
 
+    function saveLocal(){ localStorage.setItem("typefx_state_v4", JSON.stringify(getState())); }
     function loadLocal(){
-      try{
-        const raw = localStorage.getItem("typefx_state_v3");
-        if(!raw) return;
-        const st = JSON.parse(raw);
-
-        t.textContent = st.text ?? t.textContent;
-        font.value = st.font ?? font.value;
-        fs.value = st.fs ?? fs.value;
-        w.value = st.w ?? w.value;
-        s.value = st.s ?? s.value;
-        k.value = st.k ?? k.value;
-        b.value = st.b ?? b.value;
-        a3.value = st.a3 ?? a3.value;
-        p3.value = st.p3 ?? p3.value;
-        hue.value = st.hue ?? hue.value;
-        fps.value = st.fps ?? fps.value;
-      }catch(e){}
+      try{ loadState(JSON.parse(localStorage.getItem("typefx_state_v4"))); }catch(e){}
     }
 
     function upd(){
@@ -183,58 +419,58 @@ Edit me in real time.</div>
       t.style.fontSize = fs.value + "px";
       setVarFont();
 
+      const stretch = (+s.value)/100;
+      t.style.transform = `scaleX(${stretch})`;
+
       dm.setAttribute("scale", k.value);
       tb.setAttribute("baseFrequency", (0.006 + (+k.value) * 0.00018).toFixed(4));
       gb.setAttribute("stdDeviation", (+b.value).toFixed(2));
 
-      const stretch = (+s.value) / 100;
-      const persp = +p3.value;
-      const amt = (+a3.value) / 100;
-      const rx = (-my * amt * 18).toFixed(3);
-      const ry = ( mx * amt * 22).toFixed(3);
+      setTone();
+      setOuterShadow();
+      setInnerShadow();
+      setStroke();
+      setGradient();
 
-      t.style.transform = `perspective(${persp}px) rotateX(${rx}deg) rotateY(${ry}deg) scaleX(${stretch})`;
+      const shadows=[applySmear(), applyRGBShadows()].filter(Boolean).join(", ");
+      t.style.textShadow = shadows || "none";
 
+      renderPixelOverlay();
       saveLocal();
     }
 
     function download(name, mime, content){
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([content], { type: mime }));
-      a.download = name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(new Blob([content],{type:mime}));
+      a.download=name; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),500);
     }
-
     function escHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;");
+      return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
     }
 
     async function downloadPNG(){
-      upd(); // make sure latest values are applied
+      upd();
 
-      const st = getState();
-      const bg = getComputedStyle(document.body).backgroundColor || "#0b0c10";
+      const st=getState();
+      const bg=getComputedStyle(document.body).backgroundColor || "#0b0c10";
+      const svgW=Math.max(1,Math.floor(innerWidth));
+      const svgH=Math.max(1,Math.floor(innerHeight));
 
-      // Build an SVG that recreates ONLY the centered text area (no menu).
-      // Using foreignObject lets the browser render the same CSS + SVG filter.
-      const svgW = Math.max(1, Math.floor(innerWidth));
-      const svgH = Math.max(1, Math.floor(innerHeight));
+      const tCS=getComputedStyle(t);
+      const gradCss = st.fx_grad ? `
+        color:transparent;
+        background:linear-gradient(${st.ga}deg, #8cf, #f8c, #cfc);
+        background-size:200% 200%;
+        -webkit-background-clip:text;background-clip:text;` : "";
 
-      const tCS = getComputedStyle(t);
-      const wrapCS = getComputedStyle(wrap);
+      const strokeCss = st.fx_outline ? `-webkit-text-stroke:${st.st_w}px rgba(0,0,0,${(+st.st_a/100).toFixed(3)});` : `-webkit-text-stroke:0px transparent;`;
+
+      const shadowCss = (tCS.textShadow && tCS.textShadow!=="none") ? `text-shadow:${tCS.textShadow};` : "";
 
       const css = `
         html,body{margin:0;height:100%;background:${bg}}
-        #wrap{
-          height:100%;
-          display:${wrapCS.display};
-          place-items:${wrapCS.placeItems};
-          padding:${wrapCS.padding};
-        }
+        #wrap{height:100%;display:grid;place-items:center;padding:56px 24px}
         #t{
           max-width:${tCS.maxWidth};
           white-space:pre-wrap;
@@ -243,13 +479,53 @@ Edit me in real time.</div>
           line-height:${tCS.lineHeight};
           letter-spacing:${tCS.letterSpacing};
           color:${tCS.color};
-          filter:url(#fx);
           transform-origin:${tCS.transformOrigin};
           transform:${tCS.transform};
           font-variation-settings:${tCS.fontVariationSettings};
           font-weight:${tCS.fontWeight};
-          -webkit-text-size-adjust:100%;
+          filter:url(#fx);
+          ${shadowCss}
+          ${strokeCss}
+          ${gradCss}
         }`;
+
+      const poster = st.fx_post;
+      const thr = st.fx_thr;
+
+      let ctBlock = `<feComponentTransfer id="ct" in="blur" result="tone">
+        <feFuncR type="identity"/><feFuncG type="identity"/><feFuncB type="identity"/>
+      </feComponentTransfer>`;
+
+      if(poster){
+        const L=+st.pl;
+        const table=[...Array(L)].map((_,i)=>(i/(L-1)).toFixed(3)).join(" ");
+        ctBlock = `<feComponentTransfer id="ct" in="blur" result="tone">
+          <feFuncR type="discrete" tableValues="${table}"/>
+          <feFuncG type="discrete" tableValues="${table}"/>
+          <feFuncB type="discrete" tableValues="${table}"/>
+        </feComponentTransfer>`;
+      }else if(thr){
+        const cut=(+st.th/100).toFixed(3);
+        const tv = `0 0 0 0 ${cut} 1 1 1 1`;
+        ctBlock = `<feComponentTransfer id="ct" in="blur" result="tone">
+          <feFuncR type="table" tableValues="${tv}"/>
+          <feFuncG type="table" tableValues="${tv}"/>
+          <feFuncB type="table" tableValues="${tv}"/>
+        </feComponentTransfer>`;
+      }
+
+      const dsOn = st.fx_shadow || st.fx_glow;
+      const dsDx = st.fx_shadow ? st.shx : 0;
+      const dsDy = st.fx_shadow ? st.shy : 0;
+      const dsBlur = Math.max(0,(st.fx_shadow?+st.shb:0)+(st.fx_glow?+st.glow*0.55:0)).toFixed(2);
+      const dsA = st.fx_glow ? 0.55 : (st.fx_shadow ? 0.55 : 0);
+      const dsCol = `rgba(140,220,255,${dsA.toFixed(3)})`;
+
+      const inOn = st.fx_inner;
+      const inCol = inOn ? "rgba(0,0,0,.65)" : "rgba(0,0,0,0)";
+      const inDx = inOn ? st.inx : 0;
+      const inDy = inOn ? st.iny : 0;
+      const inBlur = inOn ? (+st.inb).toFixed(2) : "0";
 
       const xhtml = `
         <div xmlns="http://www.w3.org/1999/xhtml">
@@ -260,122 +536,104 @@ Edit me in real time.</div>
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}">
           <defs>
-            <filter id="fx">
-              <feTurbulence type="fractalNoise" baseFrequency="${(0.006 + st.k*0.00018).toFixed(4)}" numOctaves="2" seed="2" result="noise"/>
-              <feDisplacementMap in="SourceGraphic" in2="noise" scale="${st.k}" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-              <feGaussianBlur in="displaced" stdDeviation="${(+st.b).toFixed(2)}"/>
+            <filter id="fx" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="${(0.006 + (+st.k)*0.00018).toFixed(4)}" numOctaves="2" seed="2" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="${st.k}" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+              <feGaussianBlur in="disp" stdDeviation="${(+st.b).toFixed(2)}" result="blur"/>
+              ${ctBlock}
+              <feDropShadow in="tone" dx="${dsDx}" dy="${dsDy}" stdDeviation="${dsOn?dsBlur:"0"}" flood-color="${dsOn?dsCol:"rgba(0,0,0,0)"}" result="shadowed"/>
+              <feColorMatrix in="SourceAlpha" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="alpha"/>
+              <feOffset in="alpha" dx="${inDx}" dy="${inDy}" result="in_off_o"/>
+              <feGaussianBlur in="in_off_o" stdDeviation="${inBlur}" result="in_blur_o"/>
+              <feComposite in="in_blur_o" in2="alpha" operator="out" result="in_cut"/>
+              <feFlood flood-color="${inCol}" result="in_col"/>
+              <feComposite in="in_col" in2="in_cut" operator="in" result="in_shadow"/>
+              <feComposite in="shadowed" in2="in_shadow" operator="over" result="final"/>
+              <feComposite in="final" in2="final" operator="over"/>
             </filter>
           </defs>
           <rect width="100%" height="100%" fill="${bg}"/>
           <foreignObject x="0" y="0" width="100%" height="100%">${xhtml}</foreignObject>
         </svg>`;
 
-      const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(svgBlob);
+      const svgBlob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"});
+      const url=URL.createObjectURL(svgBlob);
 
       try{
-        const img = new Image();
-        img.decoding = "async";
-        img.src = url;
-
-        await new Promise((res, rej) => {
-          img.onload = () => res();
-          img.onerror = () => rej(new Error("PNG export failed to load SVG image."));
-        });
-
-        const dpr = devicePixelRatio || 1;
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(svgW * dpr);
-        canvas.height = Math.round(svgH * dpr);
-        const ctx = canvas.getContext("2d");
-
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.drawImage(img, 0, 0, svgW, svgH);
-
-        const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
-        if(!blob) throw new Error("PNG export failed to create blob.");
-
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "typefx.png";
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 500);
+        const img=new Image(); img.decoding="async"; img.src=url;
+        await new Promise((res,rej)=>{img.onload=res; img.onerror=()=>rej(new Error("PNG export failed."));});
+        const dpr=devicePixelRatio||1;
+        const c=document.createElement("canvas");
+        c.width=Math.round(svgW*dpr); c.height=Math.round(svgH*dpr);
+        const cx=c.getContext("2d");
+        cx.setTransform(dpr,0,0,dpr,0,0);
+        cx.drawImage(img,0,0,svgW,svgH);
+        const blob=await new Promise((res)=>c.toBlob(res,"image/png"));
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob); a.download="typefx.png"; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),500);
       } finally {
         URL.revokeObjectURL(url);
       }
     }
 
     function tick(ts){
-      const target = +fps.value;
+      const target=+fps.value;
+      if(target<=0){ last=ts; requestAnimationFrame(tick); return; }
 
-      if(target <= 0){
-        last = ts;
-        requestAnimationFrame(tick);
-        return;
-      }
+      const dt=ts-last; last=ts; acc+=dt;
+      const step=1000/target;
 
-      const dt = ts - last;
-      last = ts;
-      acc += dt;
-
-      const step = 1000 / target;
-
-      while(acc >= step){
-        seed = (seed + 1) % 9999;
+      while(acc>=step){
+        seed=(seed+1)%9999;
         tb.setAttribute("seed", seed);
-        acc -= step;
-      }
 
+        if(fx_wave.checked){
+          tt += step;
+          const sp=+ws.value/1000;
+          const fq=+wf.value/1000;
+          const base=0.004;
+          const wob = Math.sin(tt*sp)*fq;
+          tb.setAttribute("baseFrequency", (base + wob + (+k.value)*0.00010).toFixed(4));
+        }else{
+          tb.setAttribute("baseFrequency", (0.006 + (+k.value) * 0.00018).toFixed(4));
+        }
+
+        if(fx_grad.checked){
+          const p=(tt*(+gs.value/10000))%2;
+          t.style.backgroundPosition = `${(p*100).toFixed(1)}% ${(50 + Math.sin(tt/900)*20).toFixed(1)}%`;
+        }
+
+        if(fx_pixel.checked) renderPixelOverlay();
+        acc-=step;
+      }
       requestAnimationFrame(tick);
     }
 
-    addEventListener("mousemove", (e) => {
-      mx = (e.clientX / innerWidth - .5) * 2;
-      my = (e.clientY / innerHeight - .5) * 2;
-      if(+a3.value > 0) upd();
-    }, { passive:true });
-
-    [font, fs, w, s, k, b, a3, p3, hue, fps].forEach(el => {
-      el.addEventListener("input", upd);
-    });
-
-    t.addEventListener("input", upd);
-
-    $("dlpng").addEventListener("click", () => {
-      downloadPNG().catch(err => alert(err.message));
-    });
-
-    $("dljson").addEventListener("click", () => {
-      download("typefx-preset.json", "application/json", JSON.stringify(getState(), null, 2));
-    });
-
-    $("dlhtml").addEventListener("click", () => {
-      const st = getState();
-      const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Type FX Snapshot</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght,wdth@8..144,100..1000,25..151&family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@200..700&family=Playfair+Display:wght@400..900&display=swap" rel="stylesheet">
-<style>
-  html,body{height:100%;margin:0;display:grid;place-items:center;background:#0b0c10;color:#e9eef7}
-  #t{max-width:min(1100px,92vw);white-space:pre-wrap;transform-origin:0 0;
-     font-family:"${st.font}",system-ui;font-size:${st.fs}px;line-height:1.05;letter-spacing:-.02em;
-     font-variation-settings:${st.font==="Roboto Flex" ? `"wght" ${st.w}, "wdth" ${st.s}` : "normal"};
-     font-weight:${st.font==="Roboto Flex" ? 400 : Math.round((st.w-100)/900*800+100)};
-     filter:url(#fx);
-     transform:perspective(${st.p3}px) rotateX(0deg) rotateY(0deg) scaleX(${st.s/100});}
-</style>
-<div id="t">${escHtml(st.text)}</div>
-<svg width="0" height="0" style="position:absolute">
-  <filter id="fx">
-    <feTurbulence type="fractalNoise" baseFrequency="${(0.006 + st.k*0.00018).toFixed(4)}" numOctaves="2" seed="2" result="noise"/>
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="${st.k}" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-    <feGaussianBlur in="displaced" stdDeviation="${(+st.b).toFixed(2)}"/>
-  </filter>
-</svg>`;
-      download("typefx-snapshot.html", "text/html", html);
-    });
+    function wire(){
+      const els=[
+        font,fs,w,s,k,b,hue,fps,
+        fx_rgb,rgb_amt,rgb_ang,
+        fx_shadow,shx,shy,shb,
+        fx_outline,st_w,st_a,
+        fx_inner,inx,iny,inb,
+        fx_glow,glow,
+        fx_wave,ws,wf,
+        fx_smear,sm_l,sm_a,
+        fx_pixel,px,
+        fx_post,pl,
+        fx_thr,th,
+        fx_grad,gs,ga
+      ];
+      els.forEach(el=>el.addEventListener("input", upd));
+      t.addEventListener("input", upd);
+      addEventListener("resize", upd, {passive:true});
+      $("dlpng").addEventListener("click", ()=>downloadPNG().catch(e=>alert(e.message)));
+      $("dljson").addEventListener("click", ()=>download("typefx-preset.json","application/json", JSON.stringify(getState(),null,2)));
+    }
 
     loadLocal();
+    wire();
     upd();
     requestAnimationFrame(tick);
   </script>
